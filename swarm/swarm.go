@@ -37,8 +37,10 @@ import (
 	"github.com/ethereum/go-ethereum/swarm/api"
 	httpapi "github.com/ethereum/go-ethereum/swarm/api/http"
 	"github.com/ethereum/go-ethereum/swarm/fuse"
+	"github.com/ethereum/go-ethereum/swarm/metrics"
 	"github.com/ethereum/go-ethereum/swarm/network"
 	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // the swarm stack
@@ -198,6 +200,9 @@ func (self *Swarm) Start(srv *p2p.Server) error {
 
 	self.dpa.Start()
 	log.Debug(fmt.Sprintf("Swarm DPA started"))
+
+	// register metrics
+	prometheus.Register(metrics.HttpRequestsHistogram)
 
 	// start swarm http proxy server
 	if self.config.Port != "" {

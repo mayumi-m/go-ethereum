@@ -38,7 +38,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/swarm/api"
+	"github.com/ethereum/go-ethereum/swarm/metrics"
 	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 )
 
@@ -590,6 +592,17 @@ func (s *Server) HandleGetFile(w http.ResponseWriter, r *Request) {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.logDebug("HTTP %s request URL: '%s', Host: '%s', Path: '%s', Referer: '%s', Accept: '%s'", r.Method, r.RequestURI, r.URL.Host, r.URL.Path, r.Referer(), r.Header.Get("Accept"))
+
+	if r.Method == "GET" && r.URL.Path == "/metrics" {
+		prometheus.Handler().ServeHTTP(w, r)
+		return
+	}
+
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		metrics.HttpRequestsHistogram.WithLabelValues().Observe(duration.Seconds())
+	}()
 
 	uri, err := api.Parse(strings.TrimLeft(r.URL.Path, "/"))
 	req := &Request{Request: *r, uri: uri}
