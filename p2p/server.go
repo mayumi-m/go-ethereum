@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/discv5"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/ethereum/go-ethereum/swarm/metrics"
 )
 
 const (
@@ -287,6 +288,9 @@ func (srv *Server) PeerCount() int {
 // server is shut down. If the connection fails for any reason, the server will
 // attempt to reconnect the peer.
 func (srv *Server) AddPeer(node *discover.Node) {
+	// increment measurement for peers
+	metrics.NumberOfPeersGauge.Inc()
+
 	select {
 	case srv.addstatic <- node:
 	case <-srv.quit:
@@ -295,6 +299,9 @@ func (srv *Server) AddPeer(node *discover.Node) {
 
 // RemovePeer disconnects from the given node
 func (srv *Server) RemovePeer(node *discover.Node) {
+	// increment measurement for peers
+	metrics.NumberOfPeersGauge.Dec()
+
 	select {
 	case srv.removestatic <- node:
 	case <-srv.quit:

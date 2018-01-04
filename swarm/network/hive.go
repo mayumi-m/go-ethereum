@@ -26,6 +26,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/ethereum/go-ethereum/swarm/metrics"
 	"github.com/ethereum/go-ethereum/swarm/network/kademlia"
 	"github.com/ethereum/go-ethereum/swarm/storage"
 )
@@ -178,7 +179,13 @@ func (self *Hive) Start(id discover.NodeID, listenAddr func() string, connectPee
 			case <-self.quit:
 				return
 			}
-			log.Debug(fmt.Sprintf("queen's address: %v, population: %d (%d)", self.addr, self.kad.Count(), self.kad.DBCount()))
+
+			kadcount := self.kad.Count()
+
+			// set measurement to current number of peers
+			metrics.NumberOfKadPeersGauge.Set(float64(kadcount))
+
+			log.Debug(fmt.Sprintf("queen's address: %v, population: %d (%d)", self.addr, kadcount, self.kad.DBCount()))
 		}
 	}()
 	return

@@ -203,6 +203,8 @@ func (self *Swarm) Start(srv *p2p.Server) error {
 
 	// register metrics
 	prometheus.Register(metrics.HttpRequestsHistogram)
+	prometheus.Register(metrics.NumberOfPeersGauge)
+	prometheus.Register(metrics.NumberOfKadPeersGauge)
 
 	// start swarm http proxy server
 	if self.config.Port != "" {
